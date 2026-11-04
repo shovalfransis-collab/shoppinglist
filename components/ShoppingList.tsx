@@ -9,7 +9,11 @@ type Item = {
   name: string;
   category: string | null; // null while the agent is still sorting it
   done: boolean;
+  quantity: number; // 1 by default; changed by tapping the item
 };
+
+const MIN_QUANTITY = 1;
+const MAX_QUANTITY = 99;
 
 const STORAGE_KEY = "shoppinglist:v2";
 const OLD_STORAGE_KEY = "shoppinglist:v1";
@@ -46,7 +50,11 @@ function loadItems(): Item[] {
     }
     const parsed = raw ? (JSON.parse(raw) as Item[]) : [];
     // Anything that was mid-sort when the page closed lands in Other.
-    return parsed.map((i) => ({ ...i, category: normalizeCategory(i.category) }));
+    return parsed.map((i) => ({
+      ...i,
+      category: normalizeCategory(i.category),
+      quantity: typeof i.quantity === "number" && i.quantity >= MIN_QUANTITY ? i.quantity : 1, // older saves have none
+    }));
   } catch {
     return [];
   }
@@ -74,6 +82,7 @@ export default function ShoppingList() {
   const [draft, setDraft] = useState("");
   // Stored as a code (not text) so the message re-translates if the language is switched.
   const [notice, setNotice] = useState<ErrorCode | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null); // item whose quantity stepper is open
   const t = useT();
   const { locale, setLocale } = useLocale();
   const otherLocale: Locale = locale === "en" ? "he" : "en";
@@ -99,6 +108,7 @@ export default function ShoppingList() {
       name,
       category: null,
       done: false,
+      quantity: 1,
     }));
     setItems((prev) => [...fresh, ...prev]);
     setDraft("");
@@ -132,6 +142,11 @@ export default function ShoppingList() {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, done: !i.done } : i)));
   }
 
+  function setQuantity(id: string, quantity: number) {
+    const clamped = Math.min(MAX_QUANTITY, Math.max(MIN_QUANTITY, quantity));
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: clamped } : i)));
+  }
+
   function remove(id: string) {
     setItems((prev) => prev.filter((i) => i.id !== id));
   }
@@ -141,11 +156,10 @@ export default function ShoppingList() {
   }
 
   const sorting = items.filter((i) => i.category === null);
-  const aisles = useMemo(
+  const groups = useMemo(
     () =>
-      CATEGORIES.map((category, index) => ({
+      CATEGORIES.map((category) => ({
         ...category,
-        aisle: index + 1,
         items: items
           .filter((i) => i.category === category.id)
           .sort((a, b) => Number(a.done) - Number(b.done)),
@@ -214,7 +228,7 @@ export default function ShoppingList() {
                   <span dir="auto" className="text-ink">
                     {item.name}
                   </span>
-                  <span className="ms-auto text-sm">{t.findingAisle}</span>
+                  <span className="ms-auto text-sm">{t.sorting}</span>
                 </li>
               ))}
             </ul>
@@ -222,53 +236,93 @@ export default function ShoppingList() {
         )}
 
         <div className="space-y-7">
-          {aisles.map((aisle) => (
-            <section key={aisle.id} aria-labelledby={`aisle-${aisle.aisle}`}>
-              <h2 id={`aisle-${aisle.aisle}`} className="mb-2 flex items-stretch gap-3">
-                <span
-                  className="font-display flex w-11 shrink-0 flex-col items-center justify-center rounded-md py-1 leading-none text-white"
-                  style={{ backgroundColor: aisle.color }}
-                >
-                  <span className="text-[10px] font-semibold opacity-85">{t.aisle}</span>
-                  <span className="text-xl font-extrabold">{aisle.aisle}</span>
-                </span>
-                <span className="flex min-w-0 flex-1 items-center justify-between gap-2 border-b-2 pb-1" style={{ borderColor: aisle.color }}>
-                  <span className="font-display min-w-0 text-xl leading-tight font-bold tracking-tight text-balance sm:text-2xl">
-                    <span aria-hidden className="me-2">
-                      {aisle.emoji}
-                    </span>
-                    {aisle.name[locale]}
+          {groups.map((group) => (
+            <section key={group.id} aria-labelledby={`category-${group.id}`}>
+              <h2
+                id={`category-${group.id}`}
+                className="mb-2 flex min-w-0 items-center justify-between gap-2 border-b-2 pb-1"
+                style={{ borderColor: group.color }}
+              >
+                <span className="font-display min-w-0 text-xl leading-tight font-bold tracking-tight text-balance sm:text-2xl">
+                  <span aria-hidden className="me-2">
+                    {group.emoji}
                   </span>
-                  <span className="shrink-0 text-sm text-muted">{aisle.items.length}</span>
+                  {group.name[locale]}
                 </span>
+                <span className="shrink-0 text-sm text-muted">{group.items.length}</span>
               </h2>
 
               <ul>
-                {aisle.items.map((item) => (
-                  <li key={item.id} className="animate-land group flex items-center gap-1">
-                    <label className="flex min-h-12 flex-1 cursor-pointer items-center gap-3 rounded-lg px-2 hover:bg-surface">
-                      <input
-                        type="checkbox"
-                        checked={item.done}
-                        onChange={() => toggle(item.id)}
-                        className="size-5 shrink-0 cursor-pointer"
-                        style={{ accentColor: aisle.color }}
-                      />
-                      <span
-                        dir="auto"
-                        className={`text-lg transition-colors ${item.done ? "text-muted line-through decoration-2" : ""}`}
+                {group.items.map((item) => (
+                  <li key={item.id} className="animate-land">
+                    <div className="flex items-center gap-1">
+                      <label className="grid size-12 shrink-0 cursor-pointer place-items-center">
+                        <input
+                          type="checkbox"
+                          checked={item.done}
+                          onChange={() => toggle(item.id)}
+                          className="size-5 cursor-pointer"
+                          style={{ accentColor: group.color }}
+                        />
+                      </label>
+                      {/* Tapping the name opens the quantity stepper. */}
+                      <button
+                        type="button"
+                        onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                        aria-expanded={openId === item.id}
+                        aria-label={t.quantityLabel(item.name)}
+                        className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-start hover:bg-surface"
                       >
-                        {item.name}
-                      </span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => remove(item.id)}
-                      aria-label={t.removeItem(item.name)}
-                      className="grid size-10 place-items-center rounded-lg text-xl text-muted opacity-60 hover:bg-surface hover:text-ink hover:opacity-100 focus-visible:opacity-100"
-                    >
-                      ×
-                    </button>
+                        <span
+                          dir="auto"
+                          className={`min-w-0 text-lg transition-colors ${item.done ? "text-muted line-through decoration-2" : ""}`}
+                        >
+                          {item.name}
+                        </span>
+                        {item.quantity > 1 && (
+                          <span
+                            className="shrink-0 rounded-md px-1.5 text-sm font-bold text-white"
+                            style={{ backgroundColor: group.color }}
+                          >
+                            ×{item.quantity}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => remove(item.id)}
+                        aria-label={t.removeItem(item.name)}
+                        className="grid size-10 shrink-0 place-items-center rounded-lg text-xl text-muted opacity-60 hover:bg-surface hover:text-ink hover:opacity-100 focus-visible:opacity-100"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    {openId === item.id && (
+                      <div className="ms-12 mb-2 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(item.id, item.quantity - 1)}
+                          disabled={item.quantity <= MIN_QUANTITY}
+                          aria-label={t.decreaseQuantity}
+                          className="grid size-11 place-items-center rounded-lg border border-line bg-surface text-2xl disabled:opacity-40"
+                        >
+                          −
+                        </button>
+                        <output aria-live="polite" className="font-display w-12 text-center text-2xl font-bold">
+                          {item.quantity}
+                        </output>
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(item.id, item.quantity + 1)}
+                          disabled={item.quantity >= MAX_QUANTITY}
+                          aria-label={t.increaseQuantity}
+                          className="grid size-11 place-items-center rounded-lg border border-line bg-surface text-2xl disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>

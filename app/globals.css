@@ -56,7 +56,7 @@ body {
   outline-offset: 2px;
 }
 
-/* One orchestrated motion: a freshly sorted item slides into its aisle. */
+/* One orchestrated motion: a freshly sorted item slides into its category. */
 @keyframes land {
   from {
     opacity: 0;

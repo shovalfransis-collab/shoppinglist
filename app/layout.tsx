@@ -7,14 +7,14 @@ import "./globals.css";
 
 // Fonts are self-hosted from npm packages, so builds never depend on reaching Google Fonts.
 
-// Display face: characterful grotesque for the title and aisle signs.
+// Display face: characterful grotesque for the title and category headings.
 const display = localFont({
   variable: "--font-display",
   src: "../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2",
   weight: "200 800",
 });
 
-// Body face: built for legibility, which matters when you're reading a list mid-aisle.
+// Body face: built for legibility, which matters when you're reading a list in the store.
 const body = localFont({
   variable: "--font-body",
   src: [

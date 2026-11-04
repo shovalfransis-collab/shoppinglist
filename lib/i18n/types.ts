@@ -24,8 +24,10 @@ export type Dictionary = {
   emptyExample: string;
   emptyOutro: string;
   sortingLabel: string;
-  findingAisle: string;
-  aisle: string;
+  sorting: string;
+  quantityLabel: (name: string) => string;
+  increaseQuantity: string;
+  decreaseQuantity: string;
   removeItem: (name: string) => string;
   itemToAdd: string;
   placeholder: string;

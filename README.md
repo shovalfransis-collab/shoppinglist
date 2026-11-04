@@ -1,6 +1,6 @@
 # 🛒 shoppinglist
 
-A smart shopping list. You type an item, and an AI agent sorts it into the right category for you, so your list arrives already organized by aisle.
+A smart shopping list. You type an item, and an AI agent sorts it into the right category for you, so your list arrives already organized by category.
 
 > Type **"milk"** and it lands under **Dairy & Eggs**. Type **"bananas"** and it lands under **Fruits & Vegetables**. No dropdowns, no manual sorting.
 
@@ -54,9 +54,9 @@ On Vercel, add these under **Project → Settings → Environment Variables**.
 
 ## Categories
 
-15 categories in store-walk order (the order is the aisle number). Items are stored by stable id, so changing language never breaks a saved list:
+14 categories in store-walk order. Items are stored by stable id, so changing language never breaks a saved list:
 
-`fruits_veg` · `bakery` · `dairy_eggs` · `meat_chicken_fish` · `deli` · `pantry` · `spices_sauces` · `breakfast` · `snacks` · `drinks` · `frozen` · `cleaning` · `personal_care` · `household` · `other` (fallback, always last)
+`fruits_veg` · `bakery` · `dairy_eggs` · `meat_chicken_fish` · `deli` · `pantry` · `spices_oils` · `sauces_spreads` · `snacks` · `drinks` · `frozen` · `cleaning` · `personal_care` · `household` · `other` (fallback, always last)
 
 ## Languages
 
@@ -70,11 +70,12 @@ The UI is available in English and Hebrew (fully right-to-left), with a switch i
 - [x] `/api/categorize` route calling OpenRouter
 - [x] Grouped, categorized list view
 - [x] Persist the list in the browser (localStorage)
-- [ ] Move an item to a different aisle by hand
+- [ ] Move an item to a different category by hand
 - [ ] Sync the list across devices (database)
 - [x] Check off / remove items
-- [x] Category icons and aisle-sign styling
-- [x] 15 store categories with stable ids
+- [x] Category icons and colored category headings
+- [x] Tap an item to set its quantity
+- [x] 14 store categories with stable ids
 - [x] Hebrew / English with RTL layout
 
 ## License
