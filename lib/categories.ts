@@ -3,7 +3,7 @@
 // breaks saved items. Order = the order you'd usually walk through a supermarket, so it doubles
 // as the "aisle" number. "other" is the fallback and always stays last.
 
-export type Locale = "en" | "he";
+import type { Locale } from "./i18n/types";
 
 export type Category = {
   id: string;

@@ -34,6 +34,17 @@
   --font-body: var(--font-body);
 }
 
+/* Hebrew: Rubik for both title and body (latin file first, Hebrew file for the letters it lacks). */
+html[lang="he"] {
+  --font-display: var(--font-rubik-latin), var(--font-rubik-hebrew);
+  --font-body: var(--font-rubik-latin), var(--font-rubik-hebrew);
+}
+
+/* Hebrew visitors would otherwise see the English server HTML for a moment before React loads. */
+html[lang="he"] body:not([data-hydrated]) {
+  visibility: hidden;
+}
+
 body {
   background: var(--ground);
   color: var(--ink);

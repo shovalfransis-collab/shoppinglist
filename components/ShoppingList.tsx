@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, FALLBACK_CATEGORY, normalizeCategory } from "@/lib/categories";
+import { dictionaries, useLocale, useT, type ErrorCode, type Locale } from "@/lib/i18n";
 
 type Item = {
   id: string;
@@ -71,7 +72,11 @@ export default function ShoppingList() {
   const [items, setItems] = useState<Item[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [draft, setDraft] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
+  // Stored as a code (not text) so the message re-translates if the language is switched.
+  const [notice, setNotice] = useState<ErrorCode | null>(null);
+  const t = useT();
+  const { locale, setLocale } = useLocale();
+  const otherLocale: Locale = locale === "en" ? "he" : "en";
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -111,10 +116,10 @@ export default function ShoppingList() {
         categories = data.categories;
         setNotice(null);
       } else {
-        setNotice(data.error ?? "The sorting agent didn't answer. Items were put in Other.");
+        setNotice(data.error in t.errors ? data.error : "agent_failed");
       }
     } catch {
-      setNotice("You're offline. Items were put in Other.");
+      setNotice("offline");
     }
 
     const byId = new Map(fresh.map((item, i) => [item.id, categories[i] ?? FALLBACK_CATEGORY]));
@@ -153,17 +158,29 @@ export default function ShoppingList() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4">
-      <header className="pt-10 pb-6">
-        <h1 className="font-display text-5xl leading-none font-extrabold tracking-tight">
-          shoppinglist
-        </h1>
+      <header className="pt-6 pb-6">
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="font-display pt-4 text-5xl leading-none font-extrabold tracking-tight">
+            {t.title}
+          </h1>
+          {/* Shows the OTHER language's own name, in that language, so it's always readable. */}
+          <button
+            type="button"
+            onClick={() => setLocale(otherLocale)}
+            lang={otherLocale}
+            aria-label={t.switchLanguageLabel}
+            className="shrink-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-bold"
+          >
+            {dictionaries[otherLocale].languageName}
+          </button>
+        </div>
         <div className="mt-3 flex items-baseline justify-between gap-4 text-muted">
           <p aria-live="polite">
             {items.length === 0
-              ? "Sorted by aisle, automatically."
+              ? t.subtitle
               : left === 0
-                ? "Everything's in the cart."
-                : `${left} left to get`}
+                ? t.allInCart
+                : t.leftToGet(left)}
           </p>
           {checked > 0 && (
             <button
@@ -171,7 +188,7 @@ export default function ShoppingList() {
               onClick={clearChecked}
               className="shrink-0 rounded-md px-2 py-1 text-sm font-bold text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
             >
-              Clear {checked} checked
+              {t.clearChecked(checked)}
             </button>
           )}
         </div>
@@ -180,13 +197,13 @@ export default function ShoppingList() {
       <main className="flex-1 pb-36">
         {loaded && items.length === 0 && (
           <p className="mt-10 max-w-sm text-lg text-muted">
-            Your list is empty. Type what you need below, like{" "}
-            <span className="text-ink">milk, eggs, bread</span>, and each item goes to its aisle.
+            {t.emptyIntro} <span className="text-ink">{t.emptyExample}</span>
+            {t.emptyOutro}
           </p>
         )}
 
         {sorting.length > 0 && (
-          <section aria-label="Sorting" className="mb-6">
+          <section aria-label={t.sortingLabel} className="mb-6">
             <ul className="space-y-1">
               {sorting.map((item) => (
                 <li
@@ -194,8 +211,10 @@ export default function ShoppingList() {
                   className="flex items-center gap-3 rounded-lg border border-dashed border-line px-3 py-3 text-muted"
                 >
                   <span className="size-2 animate-pulse rounded-full bg-go" aria-hidden />
-                  <span className="text-ink">{item.name}</span>
-                  <span className="ml-auto text-sm">finding its aisle…</span>
+                  <span dir="auto" className="text-ink">
+                    {item.name}
+                  </span>
+                  <span className="ms-auto text-sm">{t.findingAisle}</span>
                 </li>
               ))}
             </ul>
@@ -210,17 +229,17 @@ export default function ShoppingList() {
                   className="font-display flex w-11 shrink-0 flex-col items-center justify-center rounded-md py-1 leading-none text-white"
                   style={{ backgroundColor: aisle.color }}
                 >
-                  <span className="text-[10px] font-semibold opacity-85">aisle</span>
+                  <span className="text-[10px] font-semibold opacity-85">{t.aisle}</span>
                   <span className="text-xl font-extrabold">{aisle.aisle}</span>
                 </span>
-                <span className="flex flex-1 items-center justify-between border-b-2 pb-1" style={{ borderColor: aisle.color }}>
-                  <span className="font-display text-2xl font-bold tracking-tight">
-                    <span aria-hidden className="mr-2">
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-2 border-b-2 pb-1" style={{ borderColor: aisle.color }}>
+                  <span className="font-display min-w-0 text-xl leading-tight font-bold tracking-tight text-balance sm:text-2xl">
+                    <span aria-hidden className="me-2">
                       {aisle.emoji}
                     </span>
-                    {aisle.name.en}
+                    {aisle.name[locale]}
                   </span>
-                  <span className="text-sm text-muted">{aisle.items.length}</span>
+                  <span className="shrink-0 text-sm text-muted">{aisle.items.length}</span>
                 </span>
               </h2>
 
@@ -236,6 +255,7 @@ export default function ShoppingList() {
                         style={{ accentColor: aisle.color }}
                       />
                       <span
+                        dir="auto"
                         className={`text-lg transition-colors ${item.done ? "text-muted line-through decoration-2" : ""}`}
                       >
                         {item.name}
@@ -244,7 +264,7 @@ export default function ShoppingList() {
                     <button
                       type="button"
                       onClick={() => remove(item.id)}
-                      aria-label={`Remove ${item.name}`}
+                      aria-label={t.removeItem(item.name)}
                       className="grid size-10 place-items-center rounded-lg text-xl text-muted opacity-60 hover:bg-surface hover:text-ink hover:opacity-100 focus-visible:opacity-100"
                     >
                       ×
@@ -264,19 +284,19 @@ export default function ShoppingList() {
         >
           {notice && (
             <p role="status" className="text-sm text-muted">
-              {notice}
+              {t.errors[notice]}
             </p>
           )}
           <div className="flex gap-2">
             <label htmlFor="new-item" className="sr-only">
-              Item to add
+              {t.itemToAdd}
             </label>
             <input
               ref={inputRef}
               id="new-item"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="milk, eggs, bread…"
+              placeholder={t.placeholder}
               autoComplete="off"
               enterKeyHint="done"
               className="min-h-12 min-w-0 flex-1 rounded-lg border border-line bg-surface px-4 text-lg placeholder:text-muted/70"
@@ -286,7 +306,7 @@ export default function ShoppingList() {
               disabled={!draft.trim()}
               className="min-h-12 shrink-0 rounded-lg bg-go px-5 font-bold text-go-ink disabled:opacity-40"
             >
-              Add item
+              {t.addItem}
             </button>
           </div>
         </form>

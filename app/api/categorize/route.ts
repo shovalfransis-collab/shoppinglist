@@ -3,13 +3,14 @@ import { categorizeItems, MissingApiKeyError } from "@/lib/openrouter";
 const MAX_ITEMS = 30;
 const MAX_LENGTH = 80;
 
-// POST /api/categorize  { items: ["milk", "bananas"] }  ->  { categories: ["Dairy", "Produce"] }
+// POST /api/categorize  { items: ["milk", "bananas"] }  ->  { categories: ["dairy_eggs", "fruits_veg"] }
+// Errors are { error: <code> } (bad_request | missing_key | agent_failed); the client translates them.
 export async function POST(request: Request) {
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return Response.json({ error: "Send JSON like { \"items\": [\"milk\"] }" }, { status: 400 });
+    return Response.json({ error: "bad_request" }, { status: 400 });
   }
 
   const raw = (body as { items?: unknown }).items;
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     : [];
 
   if (items.length === 0) {
-    return Response.json({ error: "No items to sort" }, { status: 400 });
+    return Response.json({ error: "bad_request" }, { status: 400 });
   }
 
   try {
@@ -31,11 +32,11 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof MissingApiKeyError) {
       return Response.json(
-        { error: "The sorting agent isn't set up yet: add OPENROUTER_API_KEY to the environment." },
+        { error: "missing_key" },
         { status: 503 },
       );
     }
     console.error(err);
-    return Response.json({ error: "The sorting agent didn't answer. Items were put in Other." }, { status: 502 });
+    return Response.json({ error: "agent_failed" }, { status: 502 });
   }
 }

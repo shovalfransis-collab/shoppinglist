@@ -2,21 +2,21 @@
 
 A smart shopping list. You type an item, and an AI agent sorts it into the right category for you, so your list arrives already organized by aisle.
 
-> Type **"milk"** and it lands under **Dairy**. Type **"bananas"** and it lands under **Produce**. No dropdowns, no manual sorting.
+> Type **"milk"** and it lands under **Dairy & Eggs**. Type **"bananas"** and it lands under **Fruits & Vegetables**. No dropdowns, no manual sorting.
 
 ## How it works
 
 1. Type something (e.g. `milk`, or a few at once: `milk, eggs, bread`) and hit **Add item**.
 2. The item is sent to an AI agent (an OpenAI model, called through **OpenRouter**).
-3. The agent returns a category (e.g. `Dairy`).
+3. The agent returns a category id (e.g. `dairy_eggs`), shown by name in the current language (Dairy & Eggs / מוצרי חלב וביצים).
 4. The list re-renders, grouped by category, as a clean categorized view.
 
 ```
-[ Add item: "milk" ] ──► /api/categorize ──► OpenRouter (OpenAI model) ──► "Dairy"
+[ Add item: "milk" ] ──► /api/categorize ──► OpenRouter (OpenAI model) ──► "dairy_eggs"
                                                                             │
                      ┌──────────────────────────────────────────────────────┘
                      ▼
-               🥛 Dairy        🥦 Produce       🍞 Bakery
+               🥛 Dairy & Eggs 🥦 Fruits & Veg 🍞 Bakery
                - milk          - bananas        - sourdough
                - yogurt        - spinach
 ```
@@ -29,6 +29,7 @@ A smart shopping list. You type an item, and an AI agent sorts it into the right
 | Styling    | Tailwind CSS                             |
 | AI         | OpenAI model via OpenRouter API          |
 | Hosting    | Vercel                                   |
+| Languages  | English + Hebrew (RTL), own i18n in `lib/i18n` |
 
 ## Getting started
 
@@ -51,6 +52,16 @@ Open http://localhost:3000.
 
 On Vercel, add these under **Project → Settings → Environment Variables**.
 
+## Categories
+
+15 categories in store-walk order (the order is the aisle number). Items are stored by stable id, so changing language never breaks a saved list:
+
+`fruits_veg` · `bakery` · `dairy_eggs` · `meat_chicken_fish` · `deli` · `pantry` · `spices_sauces` · `breakfast` · `snacks` · `drinks` · `frozen` · `cleaning` · `personal_care` · `household` · `other` (fallback, always last)
+
+## Languages
+
+The UI is available in English and Hebrew (fully right-to-left), with a switch in the header. The first visit follows the browser language; the choice is remembered. All text lives in `lib/i18n/` (`en.ts`, `he.ts`). To add a language, add one dictionary file, register it, and add a name for each category in `lib/categories.ts`.
+
 ## Roadmap
 
 - [x] Repo, Vercel project, docs
@@ -63,6 +74,8 @@ On Vercel, add these under **Project → Settings → Environment Variables**.
 - [ ] Sync the list across devices (database)
 - [x] Check off / remove items
 - [x] Category icons and aisle-sign styling
+- [x] 15 store categories with stable ids
+- [x] Hebrew / English with RTL layout
 
 ## License
 
