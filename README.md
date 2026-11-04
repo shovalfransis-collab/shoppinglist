@@ -77,8 +77,25 @@ The UI is available in English and Hebrew (fully right-to-left), with a switch i
 - [x] Tap an item to set its quantity
 - [x] Several lists, with a picker on landing
 - [x] Clear the whole list or delete one category (with confirmation)
+- [x] "5 out of 10" progress counter (counts items, not units)
+- [x] Same item added twice is merged into one row (quantities add up)
 - [x] 14 store categories with stable ids
 - [x] Hebrew / English with RTL layout
+
+### Planned
+
+Lists
+- [ ] Rename a list
+- [ ] Recover past lists (deleted or cleared lists go to a "recently deleted" place, restorable for a while)
+- [ ] Duplicate a list (copy it with its items, e.g. for the weekly shop)
+
+Recipes
+- [ ] Recipe agent for basic recipes: ask for "Middle Eastern vegetable salad" and it adds the ingredients to the list (merging with items already there, with sensible quantities)
+
+Prices and ordering (Israel)
+- [ ] Price check for a few of the big supermarket chains in Israel (choose the chains and the data source first; Israeli chains publish price files by law, so check that before scraping anything)
+- [ ] Estimated price for the whole list, in total (and per chain, so you can see the cheapest)
+- [ ] Turn the list into an order-ready shopping list/cart for the other big supermarkets, matching each item to a product there
 
 ## License
 
