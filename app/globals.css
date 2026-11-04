@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --ground: #f1f5f2; /* cool mint-grey, like a freshly mopped store floor */
+  --surface: #ffffff;
+  --ink: #14231c; /* deep green-black */
+  --muted: #5d6b64;
+  --line: #d9e2dc;
+  --go: #1f7a4d; /* grocery green, used only for the add action */
+  --go-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #0f1a15;
+    --surface: #16241d;
+    --ink: #e6efe9;
+    --muted: #93a39a;
+    --line: #253a30;
+    --go: #34a36a;
+    --go-ink: #06140d;
+  }
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-go: var(--go);
+  --color-go-ink: var(--go-ink);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 3px solid var(--go);
+  outline-offset: 2px;
+}
+
+/* One orchestrated motion: a freshly sorted item slides into its aisle. */
+@keyframes land {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-land {
+  animation: land 260ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-land {
+    animation: none;
+  }
+}
