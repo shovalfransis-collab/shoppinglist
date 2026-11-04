@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CATEGORIES, FALLBACK_CATEGORY } from "@/lib/categories";
+import { CATEGORIES, FALLBACK_CATEGORY, normalizeCategory } from "@/lib/categories";
 
 type Item = {
   id: string;
@@ -10,14 +10,42 @@ type Item = {
   done: boolean;
 };
 
-const STORAGE_KEY = "shoppinglist:v1";
+const STORAGE_KEY = "shoppinglist:v2";
+const OLD_STORAGE_KEY = "shoppinglist:v1";
+
+// v1 saved the display names; v2 saves stable ids. Anything unknown becomes "other".
+const OLD_NAME_TO_ID: Record<string, string> = {
+  Produce: "fruits_veg",
+  Bakery: "bakery",
+  Dairy: "dairy_eggs",
+  "Meat & Fish": "meat_chicken_fish",
+  Pantry: "pantry",
+  Snacks: "snacks",
+  Drinks: "drinks",
+  Frozen: "frozen",
+  Household: "household",
+  "Personal Care": "personal_care",
+  Other: "other",
+};
 
 function loadItems(): Item[] {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw === null) {
+      // One-time migration from v1: convert old names to ids, then save under the v2 key.
+      const old = window.localStorage.getItem(OLD_STORAGE_KEY);
+      if (old !== null) {
+        const migrated = (JSON.parse(old) as Item[]).map((i) => ({
+          ...i,
+          category: i.category === null ? null : (OLD_NAME_TO_ID[i.category] ?? FALLBACK_CATEGORY),
+        }));
+        raw = JSON.stringify(migrated);
+        window.localStorage.setItem(STORAGE_KEY, raw);
+      }
+    }
     const parsed = raw ? (JSON.parse(raw) as Item[]) : [];
     // Anything that was mid-sort when the page closed lands in Other.
-    return parsed.map((i) => ({ ...i, category: i.category ?? FALLBACK_CATEGORY }));
+    return parsed.map((i) => ({ ...i, category: normalizeCategory(i.category) }));
   } catch {
     return [];
   }
@@ -114,7 +142,7 @@ export default function ShoppingList() {
         ...category,
         aisle: index + 1,
         items: items
-          .filter((i) => i.category === category.name)
+          .filter((i) => i.category === category.id)
           .sort((a, b) => Number(a.done) - Number(b.done)),
       })).filter((a) => a.items.length > 0),
     [items],
@@ -176,7 +204,7 @@ export default function ShoppingList() {
 
         <div className="space-y-7">
           {aisles.map((aisle) => (
-            <section key={aisle.name} aria-labelledby={`aisle-${aisle.aisle}`}>
+            <section key={aisle.id} aria-labelledby={`aisle-${aisle.aisle}`}>
               <h2 id={`aisle-${aisle.aisle}`} className="mb-2 flex items-stretch gap-3">
                 <span
                   className="font-display flex w-11 shrink-0 flex-col items-center justify-center rounded-md py-1 leading-none text-white"
@@ -190,7 +218,7 @@ export default function ShoppingList() {
                     <span aria-hidden className="mr-2">
                       {aisle.emoji}
                     </span>
-                    {aisle.name}
+                    {aisle.name.en}
                   </span>
                   <span className="text-sm text-muted">{aisle.items.length}</span>
                 </span>

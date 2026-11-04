@@ -1,7 +1,7 @@
 // Small server-side wrapper around OpenRouter's OpenAI-compatible chat API.
 // Never import this from a client component: it reads the secret API key.
 
-import { CATEGORY_NAMES, normalizeCategory } from "./categories";
+import { CATEGORIES, normalizeCategory } from "./categories";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "openai/gpt-4o-mini";
@@ -12,11 +12,31 @@ export class MissingApiKeyError extends Error {
   }
 }
 
+// One line per category: id, both names, and example items so the model has anchors.
+const CATEGORY_HINTS: Record<string, string> = {
+  fruits_veg: "tomatoes, bananas, onions, עגבניות",
+  bakery: "bread, pita, challah, croissant",
+  dairy_eggs: "milk, eggs, cheese, yogurt, butter",
+  meat_chicken_fish: "chicken breast, salmon, tuna steak, minced beef",
+  deli: "hummus, salads, olives, ready meals",
+  pantry: "pasta, rice, flour, canned tuna, canned corn",
+  spices_sauces: "olive oil, ketchup, salt, cumin, tahini",
+  breakfast: "cereal, jam, honey, chocolate spread",
+  snacks: "Bamba, chips, chocolate, cookies",
+  drinks: "water, juice, cola, coffee, beer",
+  frozen: "ice cream, frozen peas, frozen pizza",
+  cleaning: "dish soap, bleach, sponges, laundry detergent",
+  personal_care: "shampoo, toothpaste, deodorant, diapers",
+  household: "toilet paper, paper towels, batteries, trash bags",
+  other: "only if nothing else fits",
+};
+
 const SYSTEM_PROMPT = `You sort grocery and household items into supermarket categories.
-Allowed categories (use the exact spelling): ${CATEGORY_NAMES.join(", ")}.
-Items may be in any language, have typos, or include quantities ("2 milk"). Judge by what the item is.
-Reply with JSON only, in this shape: {"categories": ["<category for item 1>", "<category for item 2>", ...]}
-Return exactly one category per item, in the same order as the input. If unsure, use "Other".`;
+Reply with the category id. Allowed categories (id: English name / Hebrew name, examples):
+${CATEGORIES.map((c) => `- ${c.id}: ${c.name.en} / ${c.name.he} (${CATEGORY_HINTS[c.id]})`).join("\n")}
+Items can be in Hebrew or English, with typos or quantities ("2 חלב", "tomatos"). Sort by what the item is.
+Reply with JSON only, in this shape: {"categories": ["<id for item 1>", "<id for item 2>", ...]}
+Return exactly one id per item, in the same order as the input. Use only the ids above. If unsure, use "other".`;
 
 export async function categorizeItems(items: string[]): Promise<string[]> {
   const apiKey = process.env.OPENROUTER_API_KEY;
