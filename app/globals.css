@@ -8,6 +8,7 @@
   --line: #d9e2dc;
   --go: #1f7a4d; /* grocery green, used only for the add action */
   --go-ink: #ffffff;
+  --danger: #b4303a; /* only for destructive confirmations */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +20,7 @@
     --line: #253a30;
     --go: #34a36a;
     --go-ink: #06140d;
+    --danger: #d4505a;
   }
 }
 
@@ -30,6 +32,7 @@
   --color-line: var(--line);
   --color-go: var(--go);
   --color-go-ink: var(--go-ink);
+  --color-danger: var(--danger);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
 }

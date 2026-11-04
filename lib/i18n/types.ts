@@ -17,7 +17,7 @@ export type Dictionary = {
   meta: { title: string; description: string };
   title: string;
   subtitle: string;
-  leftToGet: (count: number) => string;
+  progress: (checked: number, total: number) => string;
   allInCart: string;
   clearChecked: (count: number) => string;
   emptyIntro: string;
@@ -33,4 +33,26 @@ export type Dictionary = {
   placeholder: string;
   addItem: string;
   errors: Record<ErrorCode, string>;
+  // Several lists
+  defaultListName: string; // name given to the list created from an older single-list save
+  chooseList: string;
+  noLists: string;
+  newListLabel: string;
+  newListPlaceholder: string;
+  createList: string;
+  listSummary: (total: number, left: number) => string;
+  backToLists: string;
+  deleteListLabel: (name: string) => string;
+  // Confirmation pop-ups
+  cancel: string;
+  clearList: string;
+  clearListTitle: string;
+  clearListBody: (count: number) => string;
+  clearListConfirm: string;
+  deleteListTitle: (name: string) => string;
+  deleteListBody: (count: number) => string;
+  deleteListConfirm: string;
+  deleteCategoryTitle: (name: string) => string;
+  deleteCategoryBody: (count: number) => string;
+  deleteCategoryConfirm: string;
 };

@@ -75,6 +75,8 @@ The UI is available in English and Hebrew (fully right-to-left), with a switch i
 - [x] Check off / remove items
 - [x] Category icons and colored category headings
 - [x] Tap an item to set its quantity
+- [x] Several lists, with a picker on landing
+- [x] Clear the whole list or delete one category (with confirmation)
 - [x] 14 store categories with stable ids
 - [x] Hebrew / English with RTL layout
 

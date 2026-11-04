@@ -24,6 +24,11 @@ function getSnapshot(): Locale {
   return LOCALES.includes(lang) ? lang : DEFAULT_LOCALE;
 }
 
+// Current language outside React rendering (e.g. inside an effect).
+export function getCurrentLocale(): Locale {
+  return getSnapshot();
+}
+
 function getServerSnapshot(): Locale {
   return DEFAULT_LOCALE;
 }

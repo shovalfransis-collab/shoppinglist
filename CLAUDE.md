@@ -20,13 +20,18 @@ The owner is learning as a "vibe coder". When you make a non-obvious choice, add
 
 ```
 app/
-  page.tsx                 # renders <ShoppingList />
+  page.tsx                 # renders <ShoppingApp />
   layout.tsx               # fonts (incl. Hebrew), metadata, language init script, <I18nProvider>
   globals.css              # color tokens (light + dark), one motion
   api/categorize/route.ts  # server route: items -> categories via OpenRouter
 components/
-  ShoppingList.tsx         # client UI: Add item bar, category-grouped list, tap an item for its quantity, localStorage
+  ShoppingApp.tsx          # owns all lists + localStorage; opens on the picker, shows one list at a time
+  ListPicker.tsx           # landing screen: choose / create / delete a list
+  ListView.tsx             # one list: Add item bar, category-grouped items, tap an item for its quantity, clear list
+  ConfirmDialog.tsx        # "are you sure?" pop-up (native <dialog>) used before clearing or deleting
+  LanguageSwitch.tsx       # header language button
 lib/
+  storage.ts               # Item/List types, localStorage load/save, migration from older saves
   categories.ts            # 14 fixed categories (stable id, emoji, color, en/he name) in store-walk order
   i18n/                    # en.ts + he.ts dictionaries, typed helper, useT() hook, lang init script
   openrouter.ts            # server-only fetch wrapper for OpenRouter
@@ -36,7 +41,7 @@ lib/
 - OpenRouter endpoint: `POST https://openrouter.ai/api/v1/chat/completions` with `Authorization: Bearer $OPENROUTER_API_KEY`. It uses the OpenAI chat format.
 - The agent must pick from a **fixed category list** in `lib/categories.ts`: fruits_veg, bakery, dairy_eggs, meat_chicken_fish, deli, pantry, spices_oils, sauces_spreads, snacks, drinks, frozen, cleaning, personal_care, household, other. Categories are stored and returned by **stable id**, never by display name. The API takes a batch: `POST /api/categorize { "items": ["milk","bananas"] }` returns `{ "categories": ["dairy_eggs","fruits_veg"] }` (one per item, same order). Anything that isn't a valid id becomes `other`. Errors are codes (`bad_request`, `missing_key`, `agent_failed`), not English text; the client translates them.
 - The input accepts several items at once, separated by commas or new lines.
-- The list is saved in the browser's localStorage for now (key `shoppinglist:v2`; v1 used category names and is migrated once on load). The chosen language is saved under `shoppinglist:lang`.
+- The list is saved in the browser's localStorage for now (key `shoppinglist:v3` = many lists, each with items; v1/v2 single-list saves are migrated once on load and left in place). The chosen language is saved under `shoppinglist:lang`.
 - Keep the prompt short and deterministic (`temperature: 0`).
 
 ## Environment variables

@@ -9,8 +9,7 @@ export const he: Dictionary = {
   },
   title: "רשימת קניות",
   subtitle: "מסודר לפי קטגוריות, אוטומטית.",
-  // Hebrew singular and plural differ in word order and form.
-  leftToGet: (count) => (count === 1 ? "נשאר פריט 1" : `נשארו ${count} פריטים`),
+  progress: (checked, total) => `${checked} מתוך ${total}`,
   allInCart: "הכול בעגלה.",
   clearChecked: (count) => (count === 1 ? "נקה פריט מסומן" : `נקה ${count} פריטים מסומנים`),
   emptyIntro: "הרשימה ריקה. כתבו למטה מה צריך, למשל",
@@ -31,4 +30,33 @@ export const he: Dictionary = {
     agent_failed: "הסוכן המסדר לא ענה. הפריטים הועברו ל״אחר״.",
     offline: "אין חיבור לאינטרנט. הפריטים הועברו ל״אחר״.",
   },
+  defaultListName: "הרשימה שלי",
+  chooseList: "בחרו רשימה, או פתחו חדשה.",
+  noLists: "עוד אין רשימות. תנו שם לרשימה הראשונה למטה.",
+  newListLabel: "שם הרשימה",
+  newListPlaceholder: "סופר, בית מרקחת…",
+  createList: "צור רשימה",
+  listSummary: (total, left) => {
+    if (total === 0) return "ריקה";
+    if (left === 0) return total === 1 ? "הפריט בעגלה" : `כל ${total} הפריטים בעגלה`;
+    return `נשארו ${left} מתוך ${total}`;
+  },
+  backToLists: "כל הרשימות",
+  deleteListLabel: (name) => `מחק את הרשימה ${name}`,
+  cancel: "ביטול",
+  clearList: "נקה רשימה",
+  clearListTitle: "לנקות את כל הרשימה?",
+  clearListBody: (count) =>
+    `פעולה זו תסיר ${count === 1 ? "את הפריט היחיד" : `את כל ${count} הפריטים`} מהרשימה. אי אפשר לבטל אותה.`,
+  clearListConfirm: "כן, נקה",
+  deleteListTitle: (name) => `למחוק את "${name}"?`,
+  deleteListBody: (count) =>
+    count === 0
+      ? "הרשימה תימחק לצמיתות. אי אפשר לבטל את זה."
+      : `הרשימה ${count === 1 ? "והפריט שבה" : `ו-${count} הפריטים שבה`} יימחקו לצמיתות. אי אפשר לבטל את זה.`,
+  deleteListConfirm: "כן, מחק",
+  deleteCategoryTitle: (name) => `למחוק את "${name}"?`,
+  deleteCategoryBody: (count) =>
+    `פעולה זו תסיר ${count === 1 ? "את הפריט היחיד" : `את כל ${count} הפריטים`} בקטגוריה הזו מהרשימה. אי אפשר לבטל אותה.`,
+  deleteCategoryConfirm: "כן, מחק",
 };
