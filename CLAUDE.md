@@ -10,8 +10,9 @@ The owner is learning as a "vibe coder". When you make a non-obvious choice, add
 
 ## Stack (don't change it without asking)
 
-- **Next.js** (App Router) + **TypeScript**
-- **Tailwind CSS** for styling
+- **Next.js 16** (App Router) + **TypeScript**. This version is newer than most AI training data: read `AGENTS.md` and the docs in `node_modules/next/dist/docs/` before using an API you're unsure of.
+- **Tailwind CSS v4** for styling (theme tokens live in `app/globals.css`)
+- Fonts are self-hosted via `@fontsource` packages + `next/font/local` (no Google Fonts fetch at build time)
 - **OpenRouter** as the AI gateway, using an **OpenAI model** (default `openai/gpt-4o-mini`)
 - Deployed on **Vercel** (pushes to `main` auto-deploy)
 
@@ -19,16 +20,22 @@ The owner is learning as a "vibe coder". When you make a non-obvious choice, add
 
 ```
 app/
-  page.tsx                 # the list UI: Add item input + grouped list
-  api/categorize/route.ts  # server route: item -> category via OpenRouter
+  page.tsx                 # renders <ShoppingList />
+  layout.tsx               # fonts, metadata
+  globals.css              # color tokens (light + dark), one motion
+  api/categorize/route.ts  # server route: items -> categories via OpenRouter
+components/
+  ShoppingList.tsx         # client UI: Add item bar, aisle-grouped list, localStorage
 lib/
-  categories.ts            # the fixed list of allowed categories
-  openrouter.ts            # small fetch wrapper for OpenRouter
+  categories.ts            # fixed categories in store-walk order (= aisle number), colors, emoji
+  openrouter.ts            # server-only fetch wrapper for OpenRouter
 ```
 
 - The AI call happens **only on the server** (`app/api/categorize/route.ts`). The API key must never reach the browser.
 - OpenRouter endpoint: `POST https://openrouter.ai/api/v1/chat/completions` with `Authorization: Bearer $OPENROUTER_API_KEY`. It uses the OpenAI chat format.
-- The agent must pick from a **fixed category list** in `lib/categories.ts` (e.g. Produce, Dairy, Meat & Fish, Bakery, Pantry, Frozen, Drinks, Snacks, Household, Personal Care, Other). Return JSON like `{ "category": "Dairy" }`. If the response isn't a valid category, fall back to `Other`.
+- The agent must pick from a **fixed category list** in `lib/categories.ts` (e.g. Produce, Dairy, Meat & Fish, Bakery, Pantry, Frozen, Drinks, Snacks, Household, Personal Care, Other). The API takes a batch: `POST /api/categorize { "items": ["milk","bananas"] }` returns `{ "categories": ["Dairy","Produce"] }` (one per item, same order). Anything that isn't a valid category becomes `Other`.
+- The input accepts several items at once, separated by commas or new lines.
+- The list is saved in the browser's localStorage for now (key `shoppinglist:v1`).
 - Keep the prompt short and deterministic (`temperature: 0`).
 
 ## Environment variables
@@ -50,6 +57,7 @@ npm run lint
 
 - **Git authorship:** commits are authored by the repo owner only. Do **not** add `Co-Authored-By` trailers, "Generated with Claude" lines, or any AI attribution to commits or PRs. Do not list Claude as a contributor anywhere.
 - Never commit secrets or `.env*` files (except `.env.example`).
+- Dependencies are pinned to exact versions in `package.json`.
 - Small, focused commits with clear messages (`feat: add categorize route`).
 - Run `npm run build` before saying something is done.
 - Mobile-first UI. People use shopping lists in the store on their phone.

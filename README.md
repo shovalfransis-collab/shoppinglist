@@ -6,7 +6,7 @@ A smart shopping list. You type an item, and an AI agent sorts it into the right
 
 ## How it works
 
-1. Hit **Add item** and type something (e.g. `milk`).
+1. Type something (e.g. `milk`, or a few at once: `milk, eggs, bread`) and hit **Add item**.
 2. The item is sent to an AI agent (an OpenAI model, called through **OpenRouter**).
 3. The agent returns a category (e.g. `Dairy`).
 4. The list re-renders, grouped by category, as a clean categorized view.
@@ -25,14 +25,12 @@ A smart shopping list. You type an item, and an AI agent sorts it into the right
 
 | Layer      | Choice                                   |
 |------------|------------------------------------------|
-| Framework  | Next.js (App Router) + TypeScript        |
+| Framework  | Next.js 16 (App Router) + TypeScript     |
 | Styling    | Tailwind CSS                             |
 | AI         | OpenAI model via OpenRouter API          |
 | Hosting    | Vercel                                   |
 
 ## Getting started
-
-> The app code isn't written yet. These are the steps once it is.
 
 ```bash
 git clone https://github.com/shovalfransis-collab/shoppinglist.git
@@ -56,13 +54,15 @@ On Vercel, add these under **Project → Settings → Environment Variables**.
 ## Roadmap
 
 - [x] Repo, Vercel project, docs
-- [ ] Next.js + Tailwind scaffold
-- [ ] `Add item` input + list UI
-- [ ] `/api/categorize` route calling OpenRouter
-- [ ] Grouped, categorized list view
-- [ ] Persist the list (localStorage first, database later)
-- [ ] Check off / remove items
-- [ ] Category icons and nice styling
+- [x] Next.js + Tailwind scaffold
+- [x] `Add item` input + list UI
+- [x] `/api/categorize` route calling OpenRouter
+- [x] Grouped, categorized list view
+- [x] Persist the list in the browser (localStorage)
+- [ ] Move an item to a different aisle by hand
+- [ ] Sync the list across devices (database)
+- [x] Check off / remove items
+- [x] Category icons and aisle-sign styling
 
 ## License
 
