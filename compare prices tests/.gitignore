@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.venv*/
+.venv*
+__pycache__/
+
+# run output and downloaded test data
+*.log
+*.csv
+shufersal-test/
