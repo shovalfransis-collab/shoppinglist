@@ -20,9 +20,12 @@ MIN_PRICE, MAX_PRICE = 0.1, 5000
 def connect():
     """Return the 'shoppinglist' database. Errors never include the URI."""
     load_dotenv()
-    uri = os.environ.get("MONGODB_URI", "").strip()
-    if not uri:
-        sys.exit("MONGODB_URI is empty. Paste your connection string into .env first.")
+    # Strip whitespace and any surrounding quotes (a common copy-paste slip in secrets).
+    uri = os.environ.get("MONGODB_URI", "").strip().strip("'\"").strip()
+    if not uri.startswith(("mongodb://", "mongodb+srv://")):
+        # Print only the length, never the value.
+        sys.exit(f"MONGODB_URI is empty or invalid (length {len(uri)}). "
+                 "Check the GitHub repository secret name and value.")
     return MongoClient(uri, serverSelectionTimeoutMS=15000)[DB_NAME]
 
 
